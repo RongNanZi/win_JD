@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
-import numpy as np
-from datetime import datetime
+
 
 data = pd.read_csv('./data/JData_Action.csv')
 data['time'] = data['time'].apply(pd.to_datetime)
@@ -35,6 +34,25 @@ def get_shopT(df):
 data[data.type == 4].groupby(['sku_id']).apply(get_shopT)
 
 
+count_view_sku = {}
+def get_view(df):
+    global count_view_sku
+    count_view_sku.update({df['sku_id'].iat[0] : df.shape[0]})
+    
+data[data.type!=4].groupby(['sku_id']).apply(get_view)
 
-T_sku = np.asarray(T_sku)
-T_sku.dump('./data/T_shop_sku.dic')
+count_shop_sku = {}
+def get_shop(df):
+    global count_shop_sku
+    count_shop_sku.update({df['sku_id'].iat[0] : df.shape[0]})
+data[data.type == 4].groupby(['sku_id']).apply(get_shop)
+
+T_sku = pd.DataFrame(T_sku.items(), columns=['sku_id','t_shop'])
+count_view_sku =  pd.DataFrame(count_view_sku.items(), columns=['sku_id','view_count'])
+count_shop_sku =  pd.DataFrame(count_shop_sku.items(), columns=['sku_id','shop_count'])
+find_user = pd.merge(count_view_sku, count_shop_sku, 
+                      on = 'sku_id',
+                      how = 'left')
+find_user = pd.merge(find_user, T_sku, on='sku_id', how='left')
+find_user['view2shaop_rate'] = find_user['shop_count']/find_user['view_count']
+find_user.to_csv('./data/find_user.csv', index=False)

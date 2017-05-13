@@ -6,7 +6,7 @@ data = pd.read_csv('./data/JData_Action.csv')
 
 all_counts = {}
 def user2sku(df):
-    view_counts = df.groupby('sku_id').count()['Unnamed: 0'].values
+    view_counts = df.groupby('sku_id').count()['user_id'].values
     most_count = max(view_counts)
     all_counts.update({df['user_id'].iat[0] : most_count})
     
